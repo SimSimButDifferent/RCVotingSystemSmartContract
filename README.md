@@ -1,7 +1,7 @@
 ## To run locally
 
 ```bash
-git clone https://github.com/SimSimButDifferent/L5-OrderSystem.git
+git clone https://github.com/SimSimButDifferent/L6-RCVotingSystem.git
 
 yarn
 ```
