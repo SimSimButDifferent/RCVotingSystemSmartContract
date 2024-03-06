@@ -73,9 +73,36 @@ contract VotingContract {
         emit ElectionCreated(newElection.electionId, newElection.candidates, newElection.electionEndTime);
     }
 
+    // Function to close an election when the electionEndTime has passed
+
     /* Getter Functions */
     // Function to get the owner of the contract
     function getOwner() public view returns (address) {
         return owner;
+    }
+
+    // function to get the election count
+    function getElectionCount() public view returns (uint) {
+        return electionCount;
+    }
+
+    // Function to get the details of an election
+    function getElection(uint _electionId) public view returns (string[] memory, uint, ElectionStatus) {
+        return (elections[_electionId].candidates, elections[_electionId].electionEndTime, elections[_electionId].status);
+    }
+
+    // Function to get the candidates of an election
+    function getElectionCandidates(uint _electionId) public view returns (string[] memory) {
+        return elections[_electionId].candidates;
+    }
+
+    // Function to get the status of an election
+    function getElectionStatus(uint _electionId) public view returns (ElectionStatus) {
+        return elections[_electionId].status;
+    }
+
+    // Function to get the end time of an election
+    function getElectionEndTime(uint _electionId) public view returns (uint) {
+        return elections[_electionId].electionEndTime;
     }
 }
