@@ -1,4 +1,4 @@
-// SPDX-Identifier: MIT
+// SPDX-License-Identifier: MIT
 
 pragma solidity 0.8.22;
 
@@ -8,6 +8,11 @@ event ElectionCreated(
     uint indexed electionId,
     string[] candidates,
     uint electionEndTime
+);
+
+// Event to record when an election is closed
+event ElectionClosed(
+    uint indexed electionId
 );
 
 /**
@@ -31,6 +36,7 @@ contract VotingContract {
     /* Enums */
     // Enum to track the status of an election
     enum ElectionStatus {
+        notCreated,
         open,
         closed
     }
@@ -86,10 +92,15 @@ contract VotingContract {
         emit ElectionCreated(newElection.electionId, newElection.candidates, newElection.electionEndTime);
     }
 
-    // Function to close an election when the electionEndTime has passed
-    function closeElection(uint _electionId) public {
+    /**
+     * @dev Function to close an election
+     * @param _electionId The ID of the election to close
+     */
+    function closeElection(uint _electionId) public onlyOwner {
         // Require that the election exists
         require(_electionId > 0 && _electionId < electionCount, "Election does not exist");
+        // Require that the election is open
+        require(elections[_electionId].status == ElectionStatus.open, "Election is already closed");
 
         // Get the election
         Election storage election = elections[_electionId];

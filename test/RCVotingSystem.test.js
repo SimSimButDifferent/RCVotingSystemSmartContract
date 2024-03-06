@@ -1,5 +1,6 @@
 const { expect } = require("chai")
 const { ethers } = require("hardhat")
+const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers")
 
 describe("BallotContract", function () {
     let BallotContract, ballotContract, owner, addr1, vote, vote1, vote2, vote3
@@ -82,6 +83,10 @@ describe("VotingContract", function () {
         VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
         votingContract = await VotingContract.deploy()
+
+        candidate1 = "Candidate 1"
+        candidate2 = "Candidate 2"
+        candidate3 = "Candidate 3"
     })
 
     describe("Deployment", function () {
@@ -92,10 +97,6 @@ describe("VotingContract", function () {
 
     describe("addElection", function () {
         beforeEach(async function () {
-            candidate1 = "Candidate 1"
-            candidate2 = "Candidate 2"
-            candidate3 = "Candidate 3"
-
             electionTimeLimit = 1
 
             await votingContract.addElection(
@@ -107,6 +108,17 @@ describe("VotingContract", function () {
             electionStatus = await votingContract.getElectionStatus(1)
             electionStartTime = await votingContract.getElectionStartTime(1)
             electionEndTime = await votingContract.getElectionEndTime(1)
+        })
+
+        it("onlyOwner can add an election", async function () {
+            await expect(
+                votingContract
+                    .connect(addr1)
+                    .addElection(
+                        ["Candidate 1", "Candidate 2", "Candidate 3"],
+                        electionTimeLimit,
+                    ),
+            ).to.be.revertedWith("Only the owner can call this function")
         })
         it("Reverts is there is only one candidate", async function () {
             await expect(
@@ -132,6 +144,10 @@ describe("VotingContract", function () {
             )
         })
 
+        it("Should have ElectionStatus notCreated if electionId has not been used", async function () {
+            expect(await votingContract.getElectionStatus(10)).to.equal(0)
+        })
+
         it("Succesfully creates and maps an election", async function () {
             expect(await votingContract.getElection(1)).to.deep.equal([
                 candidatesList,
@@ -139,6 +155,10 @@ describe("VotingContract", function () {
                 electionEndTime,
                 electionStatus,
             ])
+        })
+
+        it("Should correctly set electionStatus enum to open", async function () {
+            expect(await votingContract.getElectionStatus(1)).to.equal(1)
         })
 
         it("Should incriment the Election count after each election", async function () {
@@ -160,6 +180,48 @@ describe("VotingContract", function () {
                     electionTimeLimit,
                 ),
             ).to.emit(votingContract, "ElectionCreated")
+        })
+    })
+
+    describe("closeElection", function () {
+        beforeEach(async function () {
+            electionTimeLimit = 1
+
+            await votingContract.addElection(
+                [candidate1, candidate2, candidate3],
+                electionTimeLimit,
+            )
+
+            await time.increase(electionTimeLimit * 24 * 60 * 60)
+        })
+
+        it("onlyOwner can close an election", async function () {
+            await expect(
+                votingContract.connect(addr1).closeElection(1),
+            ).to.be.revertedWith("Only the owner can call this function")
+        })
+
+        it("Reverts if election does not exist", async function () {
+            await expect(votingContract.closeElection(0)).to.be.revertedWith(
+                "Election does not exist",
+            )
+            await expect(votingContract.closeElection(100)).to.be.revertedWith(
+                "Election does not exist",
+            )
+        })
+
+        it("Reverts if election is already closed", async function () {
+            const closedElection = await votingContract.closeElection(1)
+            closedElection.wait()
+            await expect(votingContract.closeElection(1)).to.be.revertedWith(
+                "Election is already closed",
+            )
+        })
+
+        it("Succesfully closes an election and sets status to closed", async function () {
+            const closedElection = await votingContract.closeElection(1)
+            await closedElection.wait()
+            expect(await votingContract.getElectionStatus(1)).to.equal(2)
         })
     })
 })
