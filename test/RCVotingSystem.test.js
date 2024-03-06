@@ -17,7 +17,7 @@ describe("BallotContract", function () {
     })
 
     describe("voteBallot", function () {
-        it("Should allow voting", async function () {
+        it("Reverts if voter has already voted", async function () {
             vote1 = "Candidate 1"
             vote2 = "Candidate 2"
             vote3 = "Candidate 3"
@@ -25,11 +25,32 @@ describe("BallotContract", function () {
                 .connect(addr1)
                 .voteBallot(vote1, vote2, vote3)
             await vote.wait()
+
+            expect(
+                await ballotContract.voteBallot(vote1, vote2, vote3),
+            ).to.be.revertedWith("Voter has already voted")
+        })
+
+        it("Should allow voting", async function () {
+            vote1 = "Candidate 1"
+            vote2 = "Candidate 2"
+            vote3 = "Candidate 3"
+            vote = await ballotContract
+                .connect(addr1)
+                .voteBallot(vote1, vote2, vote3)
             expect(await ballotContract.getVoterChoices(addr1)).to.deep.equal([
                 vote1,
                 vote2,
                 vote3,
             ])
+        })
+    })
+
+    describe("getVoterChoices", function () {
+        it("Should revert if account has not voted", async function () {
+            await expect(
+                ballotContract.getVoterChoices(addr1),
+            ).to.be.revertedWith("Voter has not voted")
         })
     })
 })

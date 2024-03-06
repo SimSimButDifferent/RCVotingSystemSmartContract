@@ -46,6 +46,7 @@ contract Caller {
     }
 }
 ```
+
 ## Part 2: Using Interfaces for Contract Interactions
 
 **Defining and Implementing an Interface:**
@@ -76,6 +77,7 @@ contract Caller {
     }
 }
 ```
+
 ## Part 3: Handling Contract Dependencies
 
 **Contract Creation from Another Contract:**
@@ -96,6 +98,8 @@ Understand the gas implications of external calls and how they can affect the co
 Highlight common security considerations such as reentrancy attacks and how to mitigate them using patterns like checks-effects-interactions.
 
 **Upgradability and Modularity:** Discuss strategies for designing contracts with upgradability and modularity in mind, using proxy contracts or the diamond standard (EIP-2535).
+
+---
 
 ## Assignments and Practical Exercises
 
