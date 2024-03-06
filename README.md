@@ -1,3 +1,15 @@
+# Ranked Choice Voting System
+This project is to explore smart contract interaction.
+
+### My main aims for my voting system are:
+- To use multiple smart contracts interacting together.
+- Create and properly utilize a smart contract interface.
+- Maybe explore a factory contract.
+- The owner can create multiple elections / polls if need be.
+- the owner sets the names of the participants.
+- The time limit for them can be set in days.
+- The will be a maximum number of people / things to vote for.
+
 ## To run locally
 
 ```bash
