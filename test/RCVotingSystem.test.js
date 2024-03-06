@@ -44,6 +44,16 @@ describe("BallotContract", function () {
                 vote3,
             ])
         })
+
+        it("Should emit a VoteCast event", async function () {
+            vote1 = "Candidate 1"
+            vote2 = "Candidate 2"
+            vote3 = "Candidate 3"
+            vote = await ballotContract
+                .connect(addr1)
+                .voteBallot(vote1, vote2, vote3)
+            await expect(vote).to.emit(ballotContract, "VoteCast")
+        })
     })
 
     describe("getVoterChoices", function () {

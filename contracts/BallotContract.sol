@@ -2,7 +2,20 @@
 
 pragma solidity 0.8.22;
 
-// This is a ballot contract that manages individual ballots and records voters ranked choices for ballots.
+/* Events */
+// Event to record when a vote is counted
+    event VoteCast(
+        address indexed voter,
+        string firstChoice,
+        string secondChoice,
+        string thirdChoice
+    );
+
+/**
+ * @title BallotContract
+ * @dev Contract to manage individual ballots, recording voters' ranked choices for candidates.
+ * Also store votes and interact with the VotingContract
+ */
 contract BallotContract {
     /* State Variables */
     address private owner;
@@ -32,14 +45,6 @@ contract BallotContract {
     /* Mappings */
     // Mapping of voter address to their ranked choices
     mapping(address => VoterChoices) public voterChoices;
-
-    /* Events */
-    event VoteCounted(
-        address indexed voter,
-        string firstChoice,
-        string secondChoice,
-        string thirdChoice
-    );
 
     /* Modifiers */
 
@@ -71,8 +76,8 @@ contract BallotContract {
         // Record the voter's choices
         voterChoices[msg.sender] = voterChoice;
 
-        // Emit the VoteCounted event
-        emit VoteCounted(msg.sender, _vote1, _vote2, _vote3);
+        // Emit the VoteCast event
+        emit VoteCast(msg.sender, _vote1, _vote2, _vote3);
     }
 
     /* Getter Functions */

@@ -1,7 +1,7 @@
 {
     "name": "web3refresherL6",
     "version": "1.0.0",
-    "description": "Enums, Structs, Mappings, Arrays",
+    "description": "Smart Contract Interaction - Interfaces, Factory Contracts",
     "main": "index.js",
     "author": "Simeon Campbell",
     "license": "MIT",
