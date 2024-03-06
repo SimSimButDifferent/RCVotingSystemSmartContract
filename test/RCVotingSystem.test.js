@@ -64,3 +64,19 @@ describe("BallotContract", function () {
         })
     })
 })
+
+describe("VotingContract", function () {
+    let VotingContract, votingContract, owner, addr1, addr2, addr3, addr4, vote
+
+    beforeEach(async function () {
+        VotingContract = await ethers.getContractFactory("VotingContract")
+        ;[owner, addr1, addr2, addr3, addr4] = await ethers.getSigners()
+        votingContract = await VotingContract.deploy()
+    })
+
+    describe("Deployment", function () {
+        it("Should set the right owner", async function () {
+            expect(await votingContract.getOwner()).to.equal(owner.address)
+        })
+    })
+})
