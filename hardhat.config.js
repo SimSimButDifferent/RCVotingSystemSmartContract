@@ -36,7 +36,7 @@ module.exports = {
         enabled: true,
         currency: "USD",
         outputFile: "gas-report.txt",
-        noColors: true,
+        noColors: false,
         // coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     },
     solidity: {

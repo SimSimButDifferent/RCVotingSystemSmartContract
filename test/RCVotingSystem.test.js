@@ -2,73 +2,68 @@ const { expect } = require("chai")
 const { ethers } = require("hardhat")
 const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers")
 
-describe("BallotContract", function () {
-    let BallotContract, ballotContract, owner, addr1, vote, vote1, vote2, vote3
+describe("VotingContract", function () {
+    let VotingContract, votingContract, owner, addr1, vote, vote1, vote2, vote3
 
     beforeEach(async function () {
-        BallotContract = await ethers.getContractFactory("BallotContract")
+        VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
-        ballotContract = await BallotContract.deploy()
+        votingContract = await VotingContract.deploy()
+        vote1 = "Candidate 1"
+        vote2 = "Candidate 2"
+        vote3 = "Candidate 3"
     })
 
     describe("Deployment", function () {
         it("Should set the right owner", async function () {
-            expect(await ballotContract.getOwner()).to.equal(owner.address)
+            expect(await votingContract.getOwner()).to.equal(owner.address)
         })
     })
 
-    describe("voteBallot", function () {
+    describe("vote", function () {
         it("Reverts if voter has already voted", async function () {
-            vote1 = "Candidate 1"
-            vote2 = "Candidate 2"
-            vote3 = "Candidate 3"
-            vote = await ballotContract
-                .connect(addr1)
-                .voteBallot(vote1, vote2, vote3)
+            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
             await vote.wait()
 
             expect(
-                await ballotContract.voteBallot(vote1, vote2, vote3),
+                await votingContract.vote(vote1, vote2, vote3),
             ).to.be.revertedWith("Voter has already voted")
         })
 
         it("Should allow voting", async function () {
-            vote1 = "Candidate 1"
-            vote2 = "Candidate 2"
-            vote3 = "Candidate 3"
-            vote = await ballotContract
-                .connect(addr1)
-                .voteBallot(vote1, vote2, vote3)
-            expect(await ballotContract.getVoterChoices(addr1)).to.deep.equal([
+            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
+            expect(await votingContract.getVoterChoices(addr1)).to.deep.equal([
                 vote1,
                 vote2,
                 vote3,
             ])
         })
 
+        it("Voter status initialized to hasNotVoted and updates correctly", async function () {
+            expect(await votingContract.getVoterStatus(addr1)).to.equal(0)
+
+            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
+            expect(await votingContract.getVoterStatus(addr1)).to.equal(1)
+        })
+
         it("Should emit a VoteCast event", async function () {
-            vote1 = "Candidate 1"
-            vote2 = "Candidate 2"
-            vote3 = "Candidate 3"
-            vote = await ballotContract
-                .connect(addr1)
-                .voteBallot(vote1, vote2, vote3)
-            await expect(vote).to.emit(ballotContract, "VoteCast")
+            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
+            await expect(vote).to.emit(votingContract, "VoteCast")
         })
     })
 
     describe("getVoterChoices", function () {
         it("Should revert if account has not voted", async function () {
             await expect(
-                ballotContract.getVoterChoices(addr1),
+                votingContract.getVoterChoices(addr1),
             ).to.be.revertedWith("Voter has not voted")
         })
     })
 })
 
-describe("VotingContract", function () {
-    let VotingContract,
-        votingContract,
+describe("BallotContract", function () {
+    let BallotContract,
+        ballotContract,
         owner,
         addr1,
         candidatesList,
@@ -80,9 +75,9 @@ describe("VotingContract", function () {
         electionEndTime
 
     beforeEach(async function () {
-        VotingContract = await ethers.getContractFactory("VotingContract")
+        BallotContract = await ethers.getContractFactory("BallotContract")
         ;[owner, addr1] = await ethers.getSigners()
-        votingContract = await VotingContract.deploy()
+        ballotContract = await BallotContract.deploy()
 
         candidate1 = "Candidate 1"
         candidate2 = "Candidate 2"
@@ -91,7 +86,7 @@ describe("VotingContract", function () {
 
     describe("Deployment", function () {
         it("Should set the right owner", async function () {
-            expect(await votingContract.getOwner()).to.equal(owner.address)
+            expect(await ballotContract.getOwner()).to.equal(owner.address)
         })
     })
 
@@ -99,20 +94,20 @@ describe("VotingContract", function () {
         beforeEach(async function () {
             electionTimeLimit = 1
 
-            await votingContract.addElection(
+            await ballotContract.addElection(
                 [candidate1, candidate2, candidate3],
                 electionTimeLimit,
             )
 
-            candidatesList = await votingContract.getElectionCandidates(1)
-            electionStatus = await votingContract.getElectionStatus(1)
-            electionStartTime = await votingContract.getElectionStartTime(1)
-            electionEndTime = await votingContract.getElectionEndTime(1)
+            candidatesList = await ballotContract.getElectionCandidates(1)
+            electionStatus = await ballotContract.getElectionStatus(1)
+            electionStartTime = await ballotContract.getElectionStartTime(1)
+            electionEndTime = await ballotContract.getElectionEndTime(1)
         })
 
         it("onlyOwner can add an election", async function () {
             await expect(
-                votingContract
+                ballotContract
                     .connect(addr1)
                     .addElection(
                         ["Candidate 1", "Candidate 2", "Candidate 3"],
@@ -122,13 +117,13 @@ describe("VotingContract", function () {
         })
         it("Reverts is there is only one candidate", async function () {
             await expect(
-                votingContract.addElection(["only1Candidate"], 1),
+                ballotContract.addElection(["only1Candidate"], 1),
             ).to.be.revertedWith("There must be more than one candidate")
         })
 
         it("Reverts if there are more than 5 candidates", async function () {
             await expect(
-                votingContract.addElection(
+                ballotContract.addElection(
                     [
                         "Candidate1/6",
                         "Candidate2/6",
@@ -145,11 +140,11 @@ describe("VotingContract", function () {
         })
 
         it("Should have ElectionStatus notCreated if electionId has not been used", async function () {
-            expect(await votingContract.getElectionStatus(10)).to.equal(0)
+            expect(await ballotContract.getElectionStatus(10)).to.equal(0)
         })
 
         it("Succesfully creates and maps an election", async function () {
-            expect(await votingContract.getElection(1)).to.deep.equal([
+            expect(await ballotContract.getElection(1)).to.deep.equal([
                 candidatesList,
                 electionStartTime,
                 electionEndTime,
@@ -158,28 +153,28 @@ describe("VotingContract", function () {
         })
 
         it("Should correctly set electionStatus enum to open", async function () {
-            expect(await votingContract.getElectionStatus(1)).to.equal(1)
+            expect(await ballotContract.getElectionStatus(1)).to.equal(1)
         })
 
         it("Should incriment the Election count after each election", async function () {
-            const electionCount = await votingContract.getElectionCount()
+            const electionCount = await ballotContract.getElectionCount()
             const counterIncriment = ethers.parseUnits("1", 0)
-            await votingContract.addElection(
+            await ballotContract.addElection(
                 ["Candidate 1", "Candidate 2", "Candidate 3"],
                 electionTimeLimit,
             )
-            expect(await votingContract.getElectionCount()).to.equal(
+            expect(await ballotContract.getElectionCount()).to.equal(
                 electionCount + counterIncriment,
             )
         })
 
         it("Should emit an ElectionCreated event", async function () {
             await expect(
-                votingContract.addElection(
+                ballotContract.addElection(
                     ["Candidate 1", "Candidate 2", "Candidate 3"],
                     electionTimeLimit,
                 ),
-            ).to.emit(votingContract, "ElectionCreated")
+            ).to.emit(ballotContract, "ElectionCreated")
         })
     })
 
@@ -187,7 +182,7 @@ describe("VotingContract", function () {
         beforeEach(async function () {
             electionTimeLimit = 1
 
-            await votingContract.addElection(
+            await ballotContract.addElection(
                 [candidate1, candidate2, candidate3],
                 electionTimeLimit,
             )
@@ -197,31 +192,31 @@ describe("VotingContract", function () {
 
         it("onlyOwner can close an election", async function () {
             await expect(
-                votingContract.connect(addr1).closeElection(1),
+                ballotContract.connect(addr1).closeElection(1),
             ).to.be.revertedWith("Only the owner can call this function")
         })
 
         it("Reverts if election does not exist", async function () {
-            await expect(votingContract.closeElection(0)).to.be.revertedWith(
+            await expect(ballotContract.closeElection(0)).to.be.revertedWith(
                 "Election does not exist",
             )
-            await expect(votingContract.closeElection(100)).to.be.revertedWith(
+            await expect(ballotContract.closeElection(100)).to.be.revertedWith(
                 "Election does not exist",
             )
         })
 
         it("Reverts if election is already closed", async function () {
-            const closedElection = await votingContract.closeElection(1)
+            const closedElection = await ballotContract.closeElection(1)
             closedElection.wait()
-            await expect(votingContract.closeElection(1)).to.be.revertedWith(
+            await expect(ballotContract.closeElection(1)).to.be.revertedWith(
                 "Election is already closed",
             )
         })
 
         it("Succesfully closes an election and sets status to closed", async function () {
-            const closedElection = await votingContract.closeElection(1)
+            const closedElection = await ballotContract.closeElection(1)
             await closedElection.wait()
-            expect(await votingContract.getElectionStatus(1)).to.equal(2)
+            expect(await ballotContract.getElectionStatus(1)).to.equal(2)
         })
     })
 })
