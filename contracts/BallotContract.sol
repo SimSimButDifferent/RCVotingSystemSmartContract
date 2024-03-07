@@ -2,6 +2,9 @@
 
 pragma solidity 0.8.22;
 
+/* Imports */
+import "./IElectionManager.sol";
+
 /* Events */
 // Event to record when an election is created
 event ElectionCreated(
@@ -20,7 +23,7 @@ event ElectionClosed(
  * @dev Oversees the entire voting process, interacts with VotingContract to store votes.
  * Implements the logic for tallying votes based on RCV.
  */
-contract BallotContract {
+contract BallotContract is IElectionManager {
     /* State Variables */
     address private owner;
 
@@ -35,11 +38,11 @@ contract BallotContract {
 
     /* Enums */
     // Enum to track the status of an election
-    enum ElectionStatus {
-        notCreated,
-        open,
-        closed
-    }
+    // enum ElectionStatus {
+    //     notCreated,
+    //     open,
+    //     closed
+    // }
 
     /* Structs */
     // Struct to store a list of candidates for an election
@@ -110,7 +113,12 @@ contract BallotContract {
             // If it is, set the election status to closed
             election.status = ElectionStatus.closed;
         }
-    }  
+    }
+
+    // function AddVotes() external view {
+    //     // require that the election is open
+    //     require(elections[_electionId].status == ElectionStatus.open, "Election is not open");
+    // }
 
     /* Getter Functions */
     // Function to get the owner of the contract
