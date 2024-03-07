@@ -3,15 +3,13 @@ const { ethers } = require("hardhat")
 const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers")
 
 describe("VotingContract", function () {
-    let VotingContract, votingContract, owner, addr1, vote, vote1, vote2, vote3
+    let VotingContract, votingContract, owner, addr1, vote, rankedChoices
 
     beforeEach(async function () {
         VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
         votingContract = await VotingContract.deploy()
-        vote1 = "Candidate 1"
-        vote2 = "Candidate 2"
-        vote3 = "Candidate 3"
+        rankedChoices = ["Candidate 1", "Candidate 2", "Candidate 3"]
     })
 
     describe("Deployment", function () {
@@ -22,32 +20,28 @@ describe("VotingContract", function () {
 
     describe("vote", function () {
         it("Reverts if voter has already voted", async function () {
-            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
-            await vote.wait()
-
-            expect(
-                await votingContract.vote(vote1, vote2, vote3),
+            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
+            await expect(
+                votingContract.connect(addr1).vote(rankedChoices, 1),
             ).to.be.revertedWith("Voter has already voted")
         })
 
         it("Should allow voting", async function () {
-            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
-            expect(await votingContract.getVoterChoices(addr1)).to.deep.equal([
-                vote1,
-                vote2,
-                vote3,
-            ])
+            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
+            expect(await votingContract.getVoterChoices(addr1)).to.deep.equal(
+                rankedChoices,
+            )
         })
 
-        it("Voter status initialized to hasNotVoted and updates correctly", async function () {
-            expect(await votingContract.getVoterStatus(addr1)).to.equal(0)
+        it("Voter status updates correctly", async function () {
+            expect(await votingContract.getVoterStatus(addr1)).to.equal(false)
 
-            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
-            expect(await votingContract.getVoterStatus(addr1)).to.equal(1)
+            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
+            expect(await votingContract.getVoterStatus(addr1)).to.equal(true)
         })
 
         it("Should emit a VoteCast event", async function () {
-            vote = await votingContract.connect(addr1).vote(vote1, vote2, vote3)
+            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
             await expect(vote).to.emit(votingContract, "VoteCast")
         })
     })

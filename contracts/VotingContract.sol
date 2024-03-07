@@ -2,13 +2,14 @@
 
 pragma solidity 0.8.22;
 
+/* Imports */
+import "./IElectionManager.sol";
+
 /* Events */
 // Event to record when a vote is counted
     event VoteCast(
         address indexed voter,
-        string firstChoice,
-        string secondChoice,
-        string thirdChoice
+        string[] rankedChoices
     );
 
 /**
@@ -20,26 +21,20 @@ contract VotingContract {
     /* State Variables */
     address private owner;
 
+    // Bool to track if a voter has voted or not
+    bool hasVoted = false;
+
     /* Constructor */
     // Set the owner of the contract
     constructor() {
         owner = msg.sender;
     }
 
-    /* Enums */
-    // Enum to track if a voter has voted or not
-    enum Voted {
-        hasNotVoted,
-        hasVoted
-    }
-
     /* Structs */
     // Struct to store a voter's ranked choices
     struct VoterChoices {
-        string firstChoice;
-        string secondChoice;
-        string thirdChoice;
-        Voted voted;
+        string[] rankedChoices;
+        bool hasVoted;
     }
 
     /* Mappings */
@@ -49,35 +44,28 @@ contract VotingContract {
     /* Modifiers */
 
     /* Functions */
-    /**
-     * @dev Function to vote on a ballot and record the voter's choices
-     * @param _vote1 The first choice of the voter
-     * @param _vote2 The second choice of the voter
-     * @param _vote3 The third choice of the voter
+    /* Function to vote on a ballot
+     * @param _votes The ranked choices of the voter
      */
     function vote(
-        string memory _vote1,
-        string memory _vote2,
-        string memory _vote3
+        string[] memory _votes, uint _electionId
     ) public {
         require(
-            voterChoices[msg.sender].voted != Voted.hasVoted,
+            voterChoices[msg.sender].hasVoted == false,
             "Voter has already voted"
         );
 
         // Create a new voter choice
         VoterChoices memory voterChoice = VoterChoices(
-            _vote1,
-            _vote2,
-            _vote3,
-            Voted.hasVoted
+            _votes,
+            hasVoted = true
         );
 
         // Record the voter's choices
         voterChoices[msg.sender] = voterChoice;
 
         // Emit the VoteCast event
-        emit VoteCast(msg.sender, _vote1, _vote2, _vote3);
+        emit VoteCast(msg.sender, _votes);
     }
 
     /* Getter Functions */
@@ -90,23 +78,22 @@ contract VotingContract {
     function getVoterStatus(address _voter)
         public
         view
-        returns (Voted)
+        returns (bool)
     {
-        return voterChoices[_voter].voted;
+        return voterChoices[_voter].hasVoted;
     }
+    
 
     // Function to get a voter's ranked choices
     function getVoterChoices(
         address _voter
-    ) public view returns (string memory, string memory, string memory) {
+    ) public view returns (string[] memory) {
         require(
-            voterChoices[_voter].voted == Voted.hasVoted,
+            voterChoices[_voter].hasVoted == true,
             "Voter has not voted"
         );
         return (
-            voterChoices[_voter].firstChoice,
-            voterChoices[_voter].secondChoice,
-            voterChoices[_voter].thirdChoice
+            voterChoices[_voter].rankedChoices
         );
     }
 }
