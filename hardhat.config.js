@@ -27,6 +27,7 @@ module.exports = {
             blockConfirmations: 6,
         },
     },
+    gasLimit: 10000000,
     etherscan: {
         apiKey: {
             sepolia: ETHERSCAN_API_KEY,
@@ -37,7 +38,7 @@ module.exports = {
         currency: "USD",
         outputFile: "gas-report.txt",
         noColors: false,
-        // coinmarketcap: process.env.COINMARKETCAP_API_KEY,
+        coinmarketcap: process.env.COINMARKETCAP_API_KEY,
     },
     solidity: {
         compilers: [

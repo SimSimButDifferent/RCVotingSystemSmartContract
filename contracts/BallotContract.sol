@@ -149,7 +149,7 @@ contract BallotContract is IBallotContract {
 
     // function to get the election count
     function getElectionCount() public view returns (uint) {
-        return electionCount;
+        return electionCount - 1;
     }
 
     // Function to get the open elections

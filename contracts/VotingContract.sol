@@ -58,7 +58,7 @@ contract VotingContract is IBallotContract {
             voterChoices[msg.sender].hasVoted == false,
             "Voter has already voted"
         );
-
+        
 
         // Create a new voter choice
         VoterChoices memory voterChoice = VoterChoices(

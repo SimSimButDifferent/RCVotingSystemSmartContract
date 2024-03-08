@@ -3,13 +3,27 @@ const { ethers } = require("hardhat")
 const { time } = require("@nomicfoundation/hardhat-toolbox/network-helpers")
 
 describe("VotingContract", function () {
-    let VotingContract, votingContract, owner, addr1, vote, rankedChoices
+    let VotingContract,
+        votingContract,
+        owner,
+        addr1,
+        vote,
+        rankedChoices,
+        BallotContract,
+        ballotContract,
+        addElection
 
     beforeEach(async function () {
         VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
         votingContract = await VotingContract.deploy()
         rankedChoices = ["Candidate 1", "Candidate 2", "Candidate 3"]
+        BallotContract = await ethers.getContractFactory("BallotContract")
+        ballotContract = await BallotContract.deploy()
+        addElection = await ballotContract.addElection(
+            ["candidate 1", "candidate 2", "candidate 3"],
+            1,
+        )
     })
 
     describe("Deployment", function () {
@@ -51,6 +65,18 @@ describe("VotingContract", function () {
             await expect(
                 votingContract.getVoterChoices(addr1),
             ).to.be.revertedWith("Voter has not voted")
+        })
+    })
+
+    describe("VotingContract Interface functions", function () {
+        it("Returns election candidates to Voting Contract", async function () {
+            expect(await votingContract.getElectionCandidates(1)).to.deep.equal(
+                ["candidate 1", "candidate 2", "candidate 3"],
+            )
+        })
+
+        it("Returns election status to Voting Contract", async function () {
+            expect(await votingContract.getElectionStatus(1)).to.equal(true)
         })
     })
 })
@@ -132,10 +158,6 @@ describe("BallotContract", function () {
                 "An election can have a maximum of 5 candidates",
             )
         })
-
-        // it("Should have ElectionStatus notCreated if electionId has not been used", async function () {
-        //     expect(await ballotContract.getElectionStatus(10)).to.equal(false)
-        // })
 
         it("Succesfully creates and maps an election", async function () {
             expect(await ballotContract.getElection(1)).to.deep.equal([
