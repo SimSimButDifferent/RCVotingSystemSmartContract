@@ -13,7 +13,6 @@ interface IElectionManager {
     event ElectionClosed(uint indexed electionId);
 
     /* Enums */
-    // Enum to track the status of an election
     enum ElectionStatus {
         notCreated,
         open,

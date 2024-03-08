@@ -3,7 +3,7 @@
 pragma solidity 0.8.22;
 
 /* Imports */
-import "./IElectionManager.sol";
+import "./IBallotContract.sol";
 
 /* Events */
 // Event to record when an election is created
@@ -35,14 +35,6 @@ contract BallotContract is IElectionManager {
     constructor() {
         owner = msg.sender;
     }
-
-    /* Enums */
-    // Enum to track the status of an election
-    // enum ElectionStatus {
-    //     notCreated,
-    //     open,
-    //     closed
-    // }
 
     /* Structs */
     // Struct to store a list of candidates for an election

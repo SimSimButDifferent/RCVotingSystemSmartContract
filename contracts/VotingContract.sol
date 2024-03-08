@@ -3,7 +3,7 @@
 pragma solidity 0.8.22;
 
 /* Imports */
-import "./IElectionManager.sol";
+import "./IBallotContract.sol";
 
 /* Events */
 // Event to record when a vote is counted
