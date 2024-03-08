@@ -55,6 +55,7 @@ contract VotingContract {
             "Voter has already voted"
         );
 
+
         // Create a new voter choice
         VoterChoices memory voterChoice = VoterChoices(
             _votes,

@@ -30,6 +30,12 @@ contract BallotContract is IElectionManager {
     // Counter to keep track of the number of elections
     uint private electionCount = 1;
 
+    // Array to store open elections
+    uint[] public openElections;
+
+    // Array to store closed elections
+    uint[] public closedElections;
+
     // Election Status bool
     bool public electionOpen = false;
 
@@ -38,14 +44,6 @@ contract BallotContract is IElectionManager {
     constructor() {
         owner = msg.sender;
     }
-
-    /* Enums */
-    // Enum to track the status of an election
-    // enum ElectionStatus {
-    //     notCreated,
-    //     open,
-    //     closed
-    // }
 
     /* Structs */
     // Struct to store a list of candidates for an election
@@ -90,6 +88,9 @@ contract BallotContract is IElectionManager {
 
         // Record the election in the mapping
         elections[electionCount] = newElection;
+
+        // Add the election to the list of open elections
+        openElections.push(electionCount);
         
         // Increment the election count
         electionCount += 1;
@@ -115,7 +116,24 @@ contract BallotContract is IElectionManager {
         if (block.timestamp > election.electionEndTime) {
             // If it is, set the election status to closed
             election.electionOpen = false;
-        }
+
+            // Emit an event to record the closing of the election
+            emit ElectionClosed(_electionId);
+
+            // Remove the election from the list of open elections
+            for (uint i = 0; i < openElections.length; i++) {
+                if (openElections[i] == _electionId) {
+                    openElections[i] = openElections[openElections.length - 1];
+                    openElections.pop();
+                    break;
+                }
+            }
+
+            // Add the election to the list of closed elections
+            closedElections.push(_electionId);
+        } else {
+            // If it is not, revert the transaction
+            revert("Election is still open");}
     }
 
     // function AddVotes() external view {
@@ -132,6 +150,16 @@ contract BallotContract is IElectionManager {
     // function to get the election count
     function getElectionCount() public view returns (uint) {
         return electionCount;
+    }
+
+    // Function to get the open elections
+    function getOpenElections() public view returns (uint[] memory) {
+        return openElections;
+    }
+
+    // Function to get the closed elections
+    function getClosedElections() public view returns (uint[] memory) {
+        return closedElections;
     }
 
     // Function to get the details of an election

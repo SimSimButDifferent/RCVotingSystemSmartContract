@@ -162,6 +162,10 @@ describe("BallotContract", function () {
             )
         })
 
+        it("Adds electionId to openElections array", async function () {
+            expect(await ballotContract.getOpenElections()).to.deep.equal([1])
+        })
+
         it("Should emit an ElectionCreated event", async function () {
             await expect(
                 ballotContract.addElection(
@@ -211,6 +215,35 @@ describe("BallotContract", function () {
             const closedElection = await ballotContract.closeElection(1)
             await closedElection.wait()
             expect(await ballotContract.getElectionStatus(1)).to.equal(false)
+        })
+
+        it("Should emit an ElectionClosed event", async function () {
+            await expect(ballotContract.closeElection(1)).to.emit(
+                ballotContract,
+                "ElectionClosed",
+            )
+        })
+
+        it("Should revert if time is not up", async function () {
+            await ballotContract.addElection(
+                [candidate1, candidate2, candidate3],
+                electionTimeLimit,
+            )
+            await expect(ballotContract.closeElection(2)).to.be.revertedWith(
+                "Election is still open",
+            )
+        })
+
+        it("Adds electionId to closedElections array", async function () {
+            const closedElection = await ballotContract.closeElection(1)
+            await closedElection.wait()
+            expect(await ballotContract.getClosedElections()).to.deep.equal([1])
+        })
+
+        it("Removes electionId from openElections array", async function () {
+            const closedElection = await ballotContract.closeElection(1)
+            await closedElection.wait()
+            expect(await ballotContract.getOpenElections()).to.deep.equal([])
         })
     })
 })
