@@ -133,9 +133,9 @@ describe("BallotContract", function () {
             )
         })
 
-        it("Should have ElectionStatus notCreated if electionId has not been used", async function () {
-            expect(await ballotContract.getElectionStatus(10)).to.equal(0)
-        })
+        // it("Should have ElectionStatus notCreated if electionId has not been used", async function () {
+        //     expect(await ballotContract.getElectionStatus(10)).to.equal(false)
+        // })
 
         it("Succesfully creates and maps an election", async function () {
             expect(await ballotContract.getElection(1)).to.deep.equal([
@@ -146,8 +146,8 @@ describe("BallotContract", function () {
             ])
         })
 
-        it("Should correctly set electionStatus enum to open", async function () {
-            expect(await ballotContract.getElectionStatus(1)).to.equal(1)
+        it("Should correctly set electionOpen bool to true", async function () {
+            expect(await ballotContract.getElectionStatus(1)).to.equal(true)
         })
 
         it("Should incriment the Election count after each election", async function () {
@@ -210,7 +210,7 @@ describe("BallotContract", function () {
         it("Succesfully closes an election and sets status to closed", async function () {
             const closedElection = await ballotContract.closeElection(1)
             await closedElection.wait()
-            expect(await ballotContract.getElectionStatus(1)).to.equal(2)
+            expect(await ballotContract.getElectionStatus(1)).to.equal(false)
         })
     })
 })

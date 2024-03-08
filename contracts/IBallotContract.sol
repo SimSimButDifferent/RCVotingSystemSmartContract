@@ -12,18 +12,9 @@ interface IElectionManager {
 
     event ElectionClosed(uint indexed electionId);
 
-    /* Enums */
-    enum ElectionStatus {
-        notCreated,
-        open,
-        closed
-    }
-
     /* Functions */
 
-    function getElectionStatus(
-        uint _electionId
-    ) external view returns (ElectionStatus);
+    function getElectionStatus(uint _electionId) external view returns (bool);
 
     function getElectionCandidates(
         uint _electionId

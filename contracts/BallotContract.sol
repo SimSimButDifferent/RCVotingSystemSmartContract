@@ -30,11 +30,22 @@ contract BallotContract is IElectionManager {
     // Counter to keep track of the number of elections
     uint private electionCount = 1;
 
+    // Election Status bool
+    bool public electionOpen = false;
+
     /* Constructor */
     // Set the owner of the contract
     constructor() {
         owner = msg.sender;
     }
+
+    /* Enums */
+    // Enum to track the status of an election
+    // enum ElectionStatus {
+    //     notCreated,
+    //     open,
+    //     closed
+    // }
 
     /* Structs */
     // Struct to store a list of candidates for an election
@@ -43,7 +54,7 @@ contract BallotContract is IElectionManager {
         string[] candidates;
         uint electionStartTime;
         uint electionEndTime;
-        ElectionStatus status;
+        bool electionOpen;
     }
 
     /* Mappings */
@@ -75,7 +86,7 @@ contract BallotContract is IElectionManager {
         uint electionEndTime = block.timestamp + (_timeDays * 1 days);
 
         // Add the election to the list of elections
-        Election memory newElection = Election(electionCount, _candidates, electionStartTime, electionEndTime, ElectionStatus.open);
+        Election memory newElection = Election(electionCount, _candidates, electionStartTime, electionEndTime, true);
 
         // Record the election in the mapping
         elections[electionCount] = newElection;
@@ -95,7 +106,7 @@ contract BallotContract is IElectionManager {
         // Require that the election exists
         require(_electionId > 0 && _electionId < electionCount, "Election does not exist");
         // Require that the election is open
-        require(elections[_electionId].status == ElectionStatus.open, "Election is already closed");
+        require(elections[_electionId].electionOpen == true, "Election is already closed");
 
         // Get the election
         Election storage election = elections[_electionId];
@@ -103,7 +114,7 @@ contract BallotContract is IElectionManager {
         // Check if the current time is past the election end time
         if (block.timestamp > election.electionEndTime) {
             // If it is, set the election status to closed
-            election.status = ElectionStatus.closed;
+            election.electionOpen = false;
         }
     }
 
@@ -124,8 +135,8 @@ contract BallotContract is IElectionManager {
     }
 
     // Function to get the details of an election
-    function getElection(uint _electionId) public view returns (string[] memory, uint, uint, ElectionStatus) {
-        return (elections[_electionId].candidates, elections[_electionId].electionStartTime , elections[_electionId].electionEndTime, elections[_electionId].status);
+    function getElection(uint _electionId) public view returns (string[] memory, uint, uint, bool) {
+        return (elections[_electionId].candidates, elections[_electionId].electionStartTime , elections[_electionId].electionEndTime, elections[_electionId].electionOpen);
     }
 
     // Function to get the candidates of an election
@@ -134,8 +145,8 @@ contract BallotContract is IElectionManager {
     }
 
     // Function to get the status of an election
-    function getElectionStatus(uint _electionId) public view returns (ElectionStatus) {
-        return elections[_electionId].status;
+    function getElectionStatus(uint _electionId) public view returns (bool) {
+        return elections[_electionId].electionOpen;
     }
 
     // Function to get the start time of an election
