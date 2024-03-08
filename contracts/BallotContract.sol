@@ -23,7 +23,7 @@ event ElectionClosed(
  * @dev Oversees the entire voting process, interacts with VotingContract to store votes.
  * Implements the logic for tallying votes based on RCV.
  */
-contract BallotContract is IElectionManager {
+contract BallotContract is IBallotContract {
     /* State Variables */
     address private owner;
 
@@ -173,7 +173,7 @@ contract BallotContract is IElectionManager {
     }
 
     // Function to get the status of an election
-    function getElectionStatus(uint _electionId) public view returns (bool) {
+    function getElectionStatus(uint _electionId) external view returns (bool) {
         return elections[_electionId].electionOpen;
     }
 

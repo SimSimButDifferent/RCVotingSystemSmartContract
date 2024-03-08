@@ -12,14 +12,18 @@ import "./IBallotContract.sol";
         string[] rankedChoices
     );
 
+
+
 /**
  * @title VotingContract
- * @dev Contract to manage individual ballots, recording voters' ranked choices for candidates.
- * Also store votes and interact with the VotingContract
+ * @dev Contract to manage individual votes, recording voters' ranked choices for candidates.
+ * Also store votes and interact with the BallotContract
  */
-contract VotingContract {
+contract VotingContract is IBallotContract {
     /* State Variables */
     address private owner;
+
+    IBallotContract ballotContract = IBallotContract(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
 
     // Bool to track if a voter has voted or not
     bool hasVoted = false;
@@ -69,10 +73,26 @@ contract VotingContract {
         emit VoteCast(msg.sender, _votes);
     }
 
+   
     /* Getter Functions */
     // Function to get the owner of the contract
     function getOwner() public view returns (address) {
         return owner;
+    }
+
+    // Function to get the election status
+     function getElectionStatus(uint _electionId) public view returns (bool) {
+        return ballotContract.getElectionStatus(_electionId);
+    }
+
+
+    // Function to get election candidates
+    function getElectionCandidates(uint _electionId)
+        external
+        view
+        returns (string[] memory)
+    {
+        return ballotContract.getElectionCandidates(_electionId);
     }
 
     // Function to get a voter's vote status
