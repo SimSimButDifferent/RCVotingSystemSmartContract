@@ -9,7 +9,7 @@ import "./IBallotContract.sol";
 // Event to record when a vote is counted
     event VoteCast(
         address indexed voter,
-        string[] rankedChoices
+        uint8[] rankedChoices
     );
 
 
@@ -25,52 +25,39 @@ contract VotingContract is IBallotContract {
 
     IBallotContract ballotContract = IBallotContract(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
 
-    // Bool to track if a voter has voted or not
-    bool hasVoted = false;
-
     /* Constructor */
     // Set the owner of the contract
     constructor() {
         owner = msg.sender;
     }
 
-    /* Structs */
-    // Struct to store a voter's ranked choices
-    struct VoterChoices {
-        string[] rankedChoices;
-        bool hasVoted;
-    }
-
-    /* Mappings */
-    // Mapping of voter address to their ranked choices
-    mapping(address => VoterChoices) public voterChoices;
-
-    /* Modifiers */
+    // Mapping to store a voters voting status
+    mapping(address => bool) public voted;
 
     /* Functions */
     /* Function to vote on a ballot
      * @param _votes The ranked choices of the voter
      */
     function vote(
-        string[] memory _votes, uint _electionId
+        uint8[] memory _votes, uint _electionId
     ) public {
+        // require voter has not voted
         require(
-            voterChoices[msg.sender].hasVoted == false,
+            voted[msg.sender] == false,
             "Voter has already voted"
         );
-        
 
-        // Create a new voter choice
-        VoterChoices memory voterChoice = VoterChoices(
-            _votes,
-            hasVoted = true
-        );
+        ballotContract.addVotes(_votes, _electionId);
 
-        // Record the voter's choices
-        voterChoices[msg.sender] = voterChoice;
+        // Set the voter's vote status to true
+        voted[msg.sender] = true;
 
         // Emit the VoteCast event
         emit VoteCast(msg.sender, _votes);
+    }
+
+    function addVotes(uint8[] memory _votes, uint _electionId) public {
+        vote(_votes, _electionId);
     }
 
    
@@ -101,20 +88,18 @@ contract VotingContract is IBallotContract {
         view
         returns (bool)
     {
-        return voterChoices[_voter].hasVoted;
+        return voted[_voter];
     }
     
-
     // Function to get a voter's ranked choices
     function getVoterChoices(
         address _voter
-    ) public view returns (string[] memory) {
+    ) public view returns (uint8, uint8, uint8) {
         require(
-            voterChoices[_voter].hasVoted == true,
+            voted[msg.sender] == true,
             "Voter has not voted"
         );
-        return (
-            voterChoices[_voter].rankedChoices
-        );
+        return ballotContract.getVoterChoices(_voter);
     }
+
 }

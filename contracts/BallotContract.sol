@@ -55,9 +55,21 @@ contract BallotContract is IBallotContract {
         bool electionOpen;
     }
 
+    // Struct to store a voter's ranked choices
+    struct VoterChoices {
+        uint8 firstChoice;
+        uint8 secondChoice;
+        uint8 thirdChoice;
+        bool hasVoted;
+    }
+
     /* Mappings */
     // Mapping of election index to the election
     mapping(uint => Election) private elections;
+
+    // Mapping of voter address to their ranked choices
+    mapping(address => VoterChoices) public voterChoices;
+
 
     /* Modifiers */
     modifier onlyOwner() {
@@ -136,10 +148,32 @@ contract BallotContract is IBallotContract {
             revert("Election is still open");}
     }
 
-    // function AddVotes() external view {
-    //     // require that the election is open
-    //     require(elections[_electionId].status == ElectionStatus.open, "Election is not open");
-    // }
+    /**
+     * @dev Function to add votes to the contract
+     * @param _electionId The ID of the election to add votes to
+     * @param _votes The list of votes to add
+     */
+    function addVotes(uint8[] memory _votes, uint _electionId) external{
+        // require that the election is open
+        require (elections[_electionId].electionOpen == true, "Election is not open");
+        // Require the right amount of votes
+        require (_votes.length == elections[_electionId].candidates.length, "The amount of votes does not match the amount of candidates");
+        // Require the names of the candidates to match the candidates in the election
+        for (uint i = 0; i < _votes.length; i++) {
+            require (keccak256(abi.encodePacked(_votes[i])) == keccak256(abi.encodePacked(elections[_electionId].candidates[i])), "The name of the candidate does not match the candidates in the election");
+        }
+
+        // Create a new voter choice
+        VoterChoices memory voterChoice = VoterChoices(
+            _votes[0],
+            _votes[1],
+            _votes[2],
+            true
+        );
+
+        // Record the voter's choices
+        voterChoices[msg.sender] = voterChoice;
+    }
 
     /* Getter Functions */
     // Function to get the owner of the contract
@@ -185,6 +219,26 @@ contract BallotContract is IBallotContract {
     // Function to get the end time of an election
     function getElectionEndTime(uint _electionId) public view returns (uint) {
         return elections[_electionId].electionEndTime;
+    }
+
+    // Function to get a voter's vote status
+    function getVoterStatus(address _voter) public view returns (bool) {
+        return voterChoices[_voter].hasVoted;
+    }
+
+    // Function to get a voter's ranked choices
+    function getVoterChoices(
+        address _voter
+    ) public view returns (uint8, uint8, uint8) {
+        require(
+            voterChoices[_voter].hasVoted == true,
+            "Voter has not voted"
+        );
+        return (
+            voterChoices[_voter].firstChoice,
+            voterChoices[_voter].secondChoice,
+            voterChoices[_voter].thirdChoice
+        );
     }
 }
 
