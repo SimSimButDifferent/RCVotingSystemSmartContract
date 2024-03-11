@@ -11,17 +11,20 @@ describe("VotingContract", function () {
         rankedChoices,
         BallotContract,
         ballotContract,
+        ballotContractAddress,
         addElection,
         election1id,
         election2id
 
     beforeEach(async function () {
-        VotingContract = await ethers.getContractFactory("VotingContract")
-        ;[owner, addr1] = await ethers.getSigners()
-        votingContract = await VotingContract.deploy()
-        rankedChoices = [1, 2, 3]
         BallotContract = await ethers.getContractFactory("BallotContract")
         ballotContract = await BallotContract.deploy()
+        ballotContractAddress = ballotContract.target
+        VotingContract = await ethers.getContractFactory("VotingContract")
+        ;[owner, addr1] = await ethers.getSigners()
+        votingContract = await VotingContract.deploy(ballotContractAddress)
+        rankedChoices = [1, 2, 3]
+
         addElection = await ballotContract.addElection(
             ["candidate 1", "candidate 2", "candidate 3"],
             1,

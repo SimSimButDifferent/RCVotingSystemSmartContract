@@ -19,18 +19,19 @@ import "./IBallotContract.sol";
  * @dev Contract to manage individual votes, recording voters' ranked choices for candidates.
  * Also store votes and interact with the BallotContract
  */
-contract VotingContract is IBallotContract {
+contract VotingContract {
     /* State Variables */
     address private owner;
 
-    IBallotContract ballotContract = IBallotContract(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
+    IBallotContract private ballotContract;
 
     bool private hasVoted;
 
     /* Constructor */
     // Set the owner of the contract
-    constructor() {
+    constructor(address _ballotContractAddress) {
         owner = msg.sender;
+        ballotContract = IBallotContract(_ballotContractAddress);
     }
 
     // Mapping to store a voters voting status
@@ -49,7 +50,7 @@ contract VotingContract is IBallotContract {
             "Voter has already voted"
         );
         
-
+        // Add the votes to the BallotContract
         ballotContract.addVotes(_votes, _electionId);
 
         hasVoted = true;
