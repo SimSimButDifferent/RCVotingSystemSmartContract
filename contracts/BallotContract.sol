@@ -37,7 +37,7 @@ contract BallotContract is IBallotContract {
     uint[] public closedElections;
 
     // Election Status bool
-    bool public electionOpen = false;
+    bool private electionOpen = false;
 
     /* Constructor */
     // Set the owner of the contract
@@ -148,31 +148,25 @@ contract BallotContract is IBallotContract {
             revert("Election is still open");}
     }
 
+    // Function to update voter choices
+    function updateVoterChoices(uint8 _firstChoice, uint8 _secondChoice, uint8 _thirdChoice, uint _electionId, address _voter) external {
+        // Update the voter's choices
+        voterChoices[_electionId][_voter].firstChoice = _firstChoice;
+        voterChoices[_electionId][_voter].secondChoice = _secondChoice;
+        voterChoices[_electionId][_voter].thirdChoice = _thirdChoice;
+        voterChoices[_electionId][_voter].hasVoted = true;
+    }
+
     /**
      * @dev Function to add votes to the contract
      * @param _electionId The ID of the election to add votes to
      * @param _votes The list of votes to add
      */
-    function addVotes(uint8[] memory _votes, uint _electionId) external{
+    function addVotes(uint8[] memory _votes, uint _electionId) external view{
         // require that the election is open
         require (elections[_electionId].electionOpen == true, "Election is not open");
         // Require the right amount of votes
         require (_votes.length == elections[_electionId].candidates.length, "The amount of votes does not match the amount of candidates");
-
-        uint8[] memory votes = _votes;
-
-        // Create a new voter choice
-        VoterChoices memory voterChoice = VoterChoices(
-            votes[0],
-            votes[1],
-            votes[2],
-            true
-        );
-
-        // Record the voter's choices
-        // 
-        //map the voter's address to their choices
-        voterChoices[_electionId][msg.sender] = voterChoice;
         
     }
 

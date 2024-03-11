@@ -23,6 +23,7 @@ contract VotingContract {
     /* State Variables */
     address private owner;
 
+    // BallotContract instance
     IBallotContract private ballotContract;
 
     bool private hasVoted;
@@ -41,6 +42,7 @@ contract VotingContract {
     /* Function to vote on a ballot
      * @param _votes The ranked choices of the voter
      */
+
     function addVotes(
         uint8[] memory _votes, uint _electionId
     ) public {
@@ -52,6 +54,9 @@ contract VotingContract {
         
         // Add the votes to the BallotContract
         ballotContract.addVotes(_votes, _electionId);
+        
+        // Update the voter's choices in the BallotContract
+        ballotContract.updateVoterChoices(_votes[0],_votes[1], _votes[2], _electionId, msg.sender);
 
         hasVoted = true;
 
@@ -92,7 +97,7 @@ contract VotingContract {
         view
         returns (bool)
     {
-        return voted[_electionId][_voter];
+        return ballotContract.getVoterStatus(_voter, _electionId);
     }
     
     // Function to get a voter's ranked choices
