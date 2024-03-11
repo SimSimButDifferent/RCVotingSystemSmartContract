@@ -34,7 +34,7 @@ contract VotingContract is IBallotContract {
     }
 
     // Mapping to store a voters voting status
-    mapping(address => bool) public voted;
+    mapping(uint => mapping(address => bool)) public voted;
 
     /* Functions */
     /* Function to vote on a ballot
@@ -45,7 +45,7 @@ contract VotingContract is IBallotContract {
     ) public {
         // require voter has not voted
         require(
-            voted[msg.sender] == false,
+            voted[_electionId][msg.sender] == false,
             "Voter has already voted"
         );
         
@@ -55,15 +55,13 @@ contract VotingContract is IBallotContract {
         hasVoted = true;
 
         // Set the voter's vote status to true
-        voted[msg.sender] = hasVoted;
+        voted[_electionId][msg.sender] = hasVoted;
 
         // Emit the VoteCast event
         emit VoteCast(msg.sender, _votes);
     }
 
-    // function addVotes(uint8[] memory _votes, uint _electionId) public {
-    //     vote(_votes, _electionId);
-    // }
+    
 
    
     /* Getter Functions */
@@ -88,23 +86,23 @@ contract VotingContract is IBallotContract {
     }
 
     // Function to get a voter's vote status
-    function getVoterStatus(address _voter)
+    function getVoterStatus(address _voter, uint _electionId)
         public
         view
         returns (bool)
     {
-        return voted[_voter];
+        return voted[_electionId][_voter];
     }
     
     // Function to get a voter's ranked choices
     function getVoterChoices(
-        address _voter
+        address _voter, uint _electionId
     ) public view returns (uint8, uint8, uint8) {
         require(
-            voted[_voter] == true,
+            voted[_electionId][_voter] == true,
             "Voter has not voted"
         );
-        return ballotContract.getVoterChoices(_voter);
+        return ballotContract.getVoterChoices(_voter, _electionId);
     }
 
 }

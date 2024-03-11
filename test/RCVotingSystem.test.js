@@ -11,7 +11,9 @@ describe("VotingContract", function () {
         rankedChoices,
         BallotContract,
         ballotContract,
-        addElection
+        addElection,
+        election1id,
+        election2id
 
     beforeEach(async function () {
         VotingContract = await ethers.getContractFactory("VotingContract")
@@ -24,6 +26,8 @@ describe("VotingContract", function () {
             ["candidate 1", "candidate 2", "candidate 3"],
             1,
         )
+        election1id = 1
+        election2id = 2
     })
 
     describe("Deployment", function () {
@@ -46,18 +50,22 @@ describe("VotingContract", function () {
             vote = await votingContract
                 .connect(addr1)
                 .addVotes(rankedChoices, 1)
-            expect(await votingContract.getVoterChoices(addr1)).to.deep.equal(
-                rankedChoices,
-            )
+            expect(
+                await votingContract.getVoterChoices(addr1, election1id),
+            ).to.deep.equal(rankedChoices)
         })
 
         it("Voter status updates correctly", async function () {
-            expect(await votingContract.getVoterStatus(addr1)).to.equal(false)
+            expect(
+                await votingContract.getVoterStatus(addr1, election1id),
+            ).to.equal(false)
 
             vote = await votingContract
                 .connect(addr1)
                 .addVotes(rankedChoices, 1)
-            expect(await votingContract.getVoterStatus(addr1)).to.equal(true)
+            expect(
+                await votingContract.getVoterStatus(addr1, election1id),
+            ).to.equal(true)
         })
 
         it("Should emit a VoteCast event", async function () {
@@ -71,7 +79,7 @@ describe("VotingContract", function () {
     describe("getVoterChoices", function () {
         it("Should revert if account has not voted", async function () {
             await expect(
-                votingContract.getVoterChoices(addr1),
+                votingContract.getVoterChoices(addr1, election1id),
             ).to.be.revertedWith("Voter has not voted")
         })
     })

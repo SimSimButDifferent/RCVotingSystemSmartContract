@@ -68,7 +68,7 @@ contract BallotContract is IBallotContract {
     mapping(uint => Election) private elections;
 
     // Mapping of voter address to their ranked choices
-    mapping(address => VoterChoices) public voterChoices;
+    mapping(uint=> mapping(address => VoterChoices)) public voterChoices;
 
 
     /* Modifiers */
@@ -172,7 +172,7 @@ contract BallotContract is IBallotContract {
         // Record the voter's choices
         // 
         //map the voter's address to their choices
-        voterChoices[msg.sender] = voterChoice;
+        voterChoices[_electionId][msg.sender] = voterChoice;
         
     }
 
@@ -223,18 +223,18 @@ contract BallotContract is IBallotContract {
     }
 
     // Function to get a voter's vote status
-    function getVoterStatus(address _voter) public view returns (bool) {
-        return voterChoices[_voter].hasVoted;
+    function getVoterStatus(address _voter, uint _electionId) public view returns (bool) {
+        return voterChoices[_electionId][_voter].hasVoted;
     }
 
     // Function to get a voter's ranked choices
     function getVoterChoices(
-        address _voter
+        address _voter, uint _electionId
     ) public view returns (uint8, uint8, uint8) {
         return (
-            voterChoices[_voter].firstChoice,
-            voterChoices[_voter].secondChoice,
-            voterChoices[_voter].thirdChoice
+            voterChoices[_electionId][_voter].firstChoice,
+            voterChoices[_electionId][_voter].secondChoice,
+            voterChoices[_electionId][_voter].thirdChoice
         );
     }
 }
