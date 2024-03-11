@@ -14,7 +14,8 @@ describe("VotingContract", function () {
         ballotContractAddress,
         addElection,
         election1id,
-        election2id
+        election2id,
+        oneDay
 
     beforeEach(async function () {
         BallotContract = await ethers.getContractFactory("BallotContract")
@@ -31,6 +32,7 @@ describe("VotingContract", function () {
         )
         election1id = 1
         election2id = 2
+        oneDay = 1
     })
 
     describe("Deployment", function () {
@@ -43,7 +45,7 @@ describe("VotingContract", function () {
         it("Reverts if voter has already voted", async function () {
             vote = await votingContract
                 .connect(addr1)
-                .addVotes(rankedChoices, 1)
+                .addVotes(rankedChoices, oneDay)
             await expect(
                 votingContract.connect(addr1).addVotes(rankedChoices, 1),
             ).to.be.revertedWith("Voter has already voted")
@@ -52,7 +54,7 @@ describe("VotingContract", function () {
         it("Should allow a voter to vote", async function () {
             vote = await votingContract
                 .connect(addr1)
-                .addVotes(rankedChoices, 1)
+                .addVotes(rankedChoices, oneDay)
             expect(
                 await votingContract.getVoterChoices(addr1, election1id),
             ).to.deep.equal(rankedChoices)
@@ -65,7 +67,7 @@ describe("VotingContract", function () {
 
             vote = await votingContract
                 .connect(addr1)
-                .addVotes(rankedChoices, 1)
+                .addVotes(rankedChoices, oneDay)
             expect(
                 await votingContract.getVoterStatus(addr1, election1id),
             ).to.equal(true)
@@ -74,7 +76,7 @@ describe("VotingContract", function () {
         it("Should emit a VoteCast event", async function () {
             vote = await votingContract
                 .connect(addr1)
-                .addVotes(rankedChoices, 1)
+                .addVotes(rankedChoices, oneDay)
             await expect(vote).to.emit(votingContract, "VoteCast")
         })
     })
