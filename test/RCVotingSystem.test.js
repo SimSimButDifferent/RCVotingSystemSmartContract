@@ -14,10 +14,10 @@ describe("VotingContract", function () {
         addElection
 
     beforeEach(async function () {
-        VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
+        VotingContract = await ethers.getContractFactory("VotingContract")
         votingContract = await VotingContract.deploy()
-        rankedChoices = ["Candidate 1", "Candidate 2", "Candidate 3"]
+        rankedChoices = [1, 2, 3]
         BallotContract = await ethers.getContractFactory("BallotContract")
         ballotContract = await BallotContract.deploy()
         addElection = await ballotContract.addElection(
@@ -34,14 +34,24 @@ describe("VotingContract", function () {
 
     describe("vote", function () {
         it("Reverts if voter has already voted", async function () {
-            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
+            vote = await votingContract
+                .connect(addr1)
+                .addVotes(rankedChoices, 1)
             await expect(
-                votingContract.connect(addr1).vote(rankedChoices, 1),
+                votingContract.connect(addr1).addVotes(rankedChoices, 1),
             ).to.be.revertedWith("Voter has already voted")
         })
 
-        it("Should allow voting", async function () {
-            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
+        it("Should allow a voter to vote", async function () {
+            const addElection2 = await ballotContract.addElection(
+                ["candidate 4", "candidate 5", "candidate 6"],
+                5,
+            )
+            vote = await votingContract
+                .connect(addr1)
+                .addVotes(rankedChoices, 2)
+            const tx = await vote.wait()
+            console.log(tx)
             expect(await votingContract.getVoterChoices(addr1)).to.deep.equal(
                 rankedChoices,
             )
@@ -50,12 +60,16 @@ describe("VotingContract", function () {
         it("Voter status updates correctly", async function () {
             expect(await votingContract.getVoterStatus(addr1)).to.equal(false)
 
-            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
+            vote = await votingContract
+                .connect(addr1)
+                .addVotes(rankedChoices, 1)
             expect(await votingContract.getVoterStatus(addr1)).to.equal(true)
         })
 
         it("Should emit a VoteCast event", async function () {
-            vote = await votingContract.connect(addr1).vote(rankedChoices, 1)
+            vote = await votingContract
+                .connect(addr1)
+                .addVotes(rankedChoices, 1)
             await expect(vote).to.emit(votingContract, "VoteCast")
         })
     })

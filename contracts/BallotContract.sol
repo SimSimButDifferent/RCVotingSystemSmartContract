@@ -158,21 +158,22 @@ contract BallotContract is IBallotContract {
         require (elections[_electionId].electionOpen == true, "Election is not open");
         // Require the right amount of votes
         require (_votes.length == elections[_electionId].candidates.length, "The amount of votes does not match the amount of candidates");
-        // Require the names of the candidates to match the candidates in the election
-        for (uint i = 0; i < _votes.length; i++) {
-            require (keccak256(abi.encodePacked(_votes[i])) == keccak256(abi.encodePacked(elections[_electionId].candidates[i])), "The name of the candidate does not match the candidates in the election");
-        }
+
+        uint8[] memory votes = _votes;
 
         // Create a new voter choice
         VoterChoices memory voterChoice = VoterChoices(
-            _votes[0],
-            _votes[1],
-            _votes[2],
+            votes[0],
+            votes[1],
+            votes[2],
             true
         );
 
         // Record the voter's choices
+        // 
+        //map the voter's address to their choices
         voterChoices[msg.sender] = voterChoice;
+        
     }
 
     /* Getter Functions */
@@ -230,10 +231,6 @@ contract BallotContract is IBallotContract {
     function getVoterChoices(
         address _voter
     ) public view returns (uint8, uint8, uint8) {
-        require(
-            voterChoices[_voter].hasVoted == true,
-            "Voter has not voted"
-        );
         return (
             voterChoices[_voter].firstChoice,
             voterChoices[_voter].secondChoice,

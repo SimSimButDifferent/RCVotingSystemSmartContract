@@ -25,6 +25,8 @@ contract VotingContract is IBallotContract {
 
     IBallotContract ballotContract = IBallotContract(0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512);
 
+    bool private hasVoted;
+
     /* Constructor */
     // Set the owner of the contract
     constructor() {
@@ -38,7 +40,7 @@ contract VotingContract is IBallotContract {
     /* Function to vote on a ballot
      * @param _votes The ranked choices of the voter
      */
-    function vote(
+    function addVotes(
         uint8[] memory _votes, uint _electionId
     ) public {
         // require voter has not voted
@@ -46,19 +48,22 @@ contract VotingContract is IBallotContract {
             voted[msg.sender] == false,
             "Voter has already voted"
         );
+        
 
         ballotContract.addVotes(_votes, _electionId);
 
+        hasVoted = true;
+
         // Set the voter's vote status to true
-        voted[msg.sender] = true;
+        voted[msg.sender] = hasVoted;
 
         // Emit the VoteCast event
         emit VoteCast(msg.sender, _votes);
     }
 
-    function addVotes(uint8[] memory _votes, uint _electionId) public {
-        vote(_votes, _electionId);
-    }
+    // function addVotes(uint8[] memory _votes, uint _electionId) public {
+    //     vote(_votes, _electionId);
+    // }
 
    
     /* Getter Functions */
@@ -96,7 +101,7 @@ contract VotingContract is IBallotContract {
         address _voter
     ) public view returns (uint8, uint8, uint8) {
         require(
-            voted[msg.sender] == true,
+            voted[_voter] == true,
             "Voter has not voted"
         );
         return ballotContract.getVoterChoices(_voter);
