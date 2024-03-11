@@ -14,8 +14,8 @@ describe("VotingContract", function () {
         addElection
 
     beforeEach(async function () {
-        ;[owner, addr1] = await ethers.getSigners()
         VotingContract = await ethers.getContractFactory("VotingContract")
+        ;[owner, addr1] = await ethers.getSigners()
         votingContract = await VotingContract.deploy()
         rankedChoices = [1, 2, 3]
         BallotContract = await ethers.getContractFactory("BallotContract")
@@ -43,15 +43,9 @@ describe("VotingContract", function () {
         })
 
         it("Should allow a voter to vote", async function () {
-            const addElection2 = await ballotContract.addElection(
-                ["candidate 4", "candidate 5", "candidate 6"],
-                5,
-            )
             vote = await votingContract
                 .connect(addr1)
-                .addVotes(rankedChoices, 2)
-            const tx = await vote.wait()
-            console.log(tx)
+                .addVotes(rankedChoices, 1)
             expect(await votingContract.getVoterChoices(addr1)).to.deep.equal(
                 rankedChoices,
             )
