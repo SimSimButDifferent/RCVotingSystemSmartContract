@@ -12,7 +12,7 @@ interface IBallotContract {
         address _voter
     ) external;
 
-    function addVotes(uint8[] memory _votes, uint _electionId) external;
+    function checkElection(uint8[] memory _votes, uint _electionId) external;
 
     function getElectionStatus(uint _electionId) external view returns (bool);
 

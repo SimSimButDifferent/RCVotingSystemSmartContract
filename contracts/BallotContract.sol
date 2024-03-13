@@ -162,7 +162,7 @@ contract BallotContract is IBallotContract {
      * @param _electionId The ID of the election to add votes to
      * @param _votes The list of votes to add
      */
-    function addVotes(uint8[] memory _votes, uint _electionId) external view{
+    function checkElection(uint8[] memory _votes, uint _electionId) external view{
         // require that the election is open
         require (elections[_electionId].electionOpen == true, "Election is not open");
         // Require the right amount of votes

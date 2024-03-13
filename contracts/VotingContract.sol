@@ -53,7 +53,7 @@ contract VotingContract {
         );
         
         // Add the votes to the BallotContract
-        ballotContract.addVotes(_votes, _electionId);
+        ballotContract.checkElection(_votes, _electionId);
         
         // Update the voter's choices in the BallotContract
         ballotContract.updateVoterChoices(_votes[0],_votes[1], _votes[2], _electionId, msg.sender);
