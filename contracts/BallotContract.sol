@@ -163,8 +163,10 @@ contract BallotContract is IBallotContract {
      * @param _votes The list of votes to add
      */
     function checkElection(uint8[] memory _votes, uint _electionId) external view{
+        // require election exists
+        require(_electionId > 0 && _electionId < electionCount, "Election does not exist");
         // require that the election is open
-        require (elections[_electionId].electionOpen == true, "Election is not open");
+        require (elections[_electionId].electionOpen == true, "Election is closed");
         // Require the right amount of votes
         require (_votes.length == elections[_electionId].candidates.length, "The amount of votes does not match the amount of candidates");
         

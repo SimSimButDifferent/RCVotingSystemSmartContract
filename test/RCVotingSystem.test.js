@@ -24,15 +24,16 @@ describe("VotingContract", function () {
         VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
         votingContract = await VotingContract.deploy(ballotContractAddress)
-        rankedChoices = [1, 2, 3]
 
-        addElection = await ballotContract.addElection(
-            ["candidate 1", "candidate 2", "candidate 3"],
-            1,
-        )
+        rankedChoices = [1, 2, 3]
         election1id = 1
         election2id = 2
         oneDay = 1
+
+        addElection = await ballotContract.addElection(
+            ["candidate 1", "candidate 2", "candidate 3"],
+            oneDay,
+        )
     })
 
     describe("Deployment", function () {
@@ -49,6 +50,43 @@ describe("VotingContract", function () {
             await expect(
                 votingContract.connect(addr1).addVotes(rankedChoices, 1),
             ).to.be.revertedWith("Voter has already voted")
+        })
+
+        it("Reverts if election does not exist", async function () {
+            await expect(
+                votingContract.connect(addr1).addVotes(rankedChoices, 0),
+            ).to.be.revertedWith("Election does not exist")
+            await expect(
+                votingContract.connect(addr1).addVotes(rankedChoices, 2),
+            ).to.be.revertedWith("Election does not exist")
+            await expect(
+                votingContract.connect(addr1).addVotes(rankedChoices, 100),
+            ).to.be.revertedWith("Election does not exist")
+        })
+
+        it("Reverts if election is closed", async function () {
+            await time.increase(2 * 24 * 60 * 60)
+
+            await ballotContract.connect(owner).closeElection(election1id)
+
+            await expect(
+                votingContract
+                    .connect(addr1)
+                    .addVotes(rankedChoices, election1id),
+            ).to.be.revertedWith("Election is closed")
+        })
+
+        it("Reverts if there is a different number of candidates", async function () {
+            await expect(
+                votingContract.connect(addr1).addVotes([1, 2], 1),
+            ).to.be.revertedWith(
+                "The amount of votes does not match the amount of candidates",
+            )
+            await expect(
+                votingContract.connect(addr1).addVotes([1, 2, 3, 4], 1),
+            ).to.be.revertedWith(
+                "The amount of votes does not match the amount of candidates",
+            )
         })
 
         it("Should allow a voter to vote", async function () {
@@ -89,13 +127,14 @@ describe("VotingContract", function () {
         })
     })
 
-    describe("VotingContract Interface functions", function () {
+    describe("GetElectionCandidates", function () {
         it("Returns election candidates to Voting Contract", async function () {
             expect(await votingContract.getElectionCandidates(1)).to.deep.equal(
                 ["candidate 1", "candidate 2", "candidate 3"],
             )
         })
-
+    })
+    describe("GetElectionStatus", function () {
         it("Returns election status to Voting Contract", async function () {
             expect(await votingContract.getElectionStatus(1)).to.equal(true)
         })
