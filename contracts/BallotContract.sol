@@ -180,6 +180,30 @@ contract BallotContract is IBallotContract {
         voterChoices[_electionId][_voter].hasVoted = true;
     }
 
+    function addVotesToCount(uint8 _firstChoice, uint8 _secondChoice, uint8 _thirdChoice, uint _electionId) external {
+
+        // Get the candidates for the election
+        string[] memory candidates = elections[_electionId].candidates;
+
+        // Get the candidates' vote count
+        CandidatesVoteCount storage candidateVoteCount = candidatesVoteCount[_electionId][candidates[_firstChoice]];
+
+        // Add the votes to the candidates' vote count
+        candidateVoteCount.firstChoiceVotes += 1;
+
+        // Get the candidates' vote count
+        candidateVoteCount = candidatesVoteCount[_electionId][candidates[_secondChoice]];
+
+        // Add the votes to the candidates' vote count
+        candidateVoteCount.secondChoiceVotes += 1;
+
+        // Get the candidates' vote count
+        candidateVoteCount = candidatesVoteCount[_electionId][candidates[_thirdChoice]];
+
+        // Add the votes to the candidates' vote count
+        candidateVoteCount.thirdChoiceVotes += 1;
+    }
+
     /**
      * @dev Function to add votes to the contract
      * @param _electionId The ID of the election to add votes to

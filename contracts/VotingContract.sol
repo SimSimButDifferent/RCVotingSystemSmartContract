@@ -58,6 +58,9 @@ contract VotingContract {
         // Update the voter's choices in the BallotContract
         ballotContract.updateVoterChoices(_votes[0],_votes[1], _votes[2], _electionId, msg.sender);
 
+        // Add the votes to the BallotContract
+        ballotContract.addVotesToCount(_votes[0],_votes[1], _votes[2], _electionId);
+
         hasVoted = true;
 
         // Set the voter's vote status to true

@@ -24,13 +24,16 @@ describe("VotingContract", function () {
         VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
         votingContract = await VotingContract.deploy(ballotContractAddress)
-        rankedChoices = [1, 2, 3]
+        rankedChoices = [0, 1, 2]
         election1id = 1
         election2id = 2
         oneDay = 1
+        candidate1 = "candidate 1"
+        candidate2 = "candidate 2"
+        candidate3 = "candidate 3"
 
         addElection = await ballotContract.addElection(
-            ["candidate 1", "candidate 2", "candidate 3"],
+            [candidate1, candidate2, candidate3],
             oneDay,
         )
     })
@@ -108,6 +111,30 @@ describe("VotingContract", function () {
             expect(
                 await votingContract.getVoterStatus(addr1, election1id),
             ).to.equal(true)
+        })
+
+        it("Should update the candidateVoteCount mapping correctly", async function () {
+            vote = await votingContract
+                .connect(addr1)
+                .addVotes(rankedChoices, 1)
+            expect(
+                await ballotContract.getCandidateVoteCount(
+                    election1id,
+                    candidate1,
+                ),
+            ).to.deep.equal([1, 0, 0])
+            expect(
+                await ballotContract.getCandidateVoteCount(
+                    election1id,
+                    candidate2,
+                ),
+            ).to.deep.equal([0, 1, 0])
+            expect(
+                await ballotContract.getCandidateVoteCount(
+                    election1id,
+                    candidate3,
+                ),
+            ).to.deep.equal([0, 0, 1])
         })
 
         it("Should emit a VoteCast event", async function () {
