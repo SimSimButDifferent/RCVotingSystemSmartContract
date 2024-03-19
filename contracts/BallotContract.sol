@@ -63,12 +63,22 @@ contract BallotContract is IBallotContract {
         bool hasVoted;
     }
 
+    // Struct to store the vote count for each candidate
+    struct CandidatesVoteCount {
+        uint firstChoiceVotes;
+        uint secondChoiceVotes;
+        uint thirdChoiceVotes;
+    }
+
     /* Mappings */
     // Mapping of election index to the election
     mapping(uint => Election) private elections;
 
     // Mapping of voter address to their ranked choices
     mapping(uint=> mapping(address => VoterChoices)) public voterChoices;
+
+    // Mapping candidates to their vote count
+    mapping(uint=> mapping(string => CandidatesVoteCount)) public candidatesVoteCount;
 
 
     /* Modifiers */
@@ -97,6 +107,17 @@ contract BallotContract is IBallotContract {
 
         // Add the election to the list of elections
         Election memory newElection = Election(electionCount, _candidates, electionStartTime, electionEndTime, true);
+
+        // Create a new CandidatesVoteCount struct for each candidate
+        CandidatesVoteCount memory newCandidate;
+
+        // Add candidates to the candidatesVoteCount mapping
+        for (uint i = 0; i < _candidates.length; i++) {
+            newCandidate = CandidatesVoteCount(0, 0, 0);
+            for (uint j = 0; j < _candidates.length; j++) {
+                candidatesVoteCount[electionCount][_candidates[i]] = CandidatesVoteCount(0, 0, 0);
+            }
+        }
 
         // Record the election in the mapping
         elections[electionCount] = newElection;
@@ -147,6 +168,8 @@ contract BallotContract is IBallotContract {
             // If it is not, revert the transaction
             revert("Election is still open");}
     }
+
+
 
     // Function to update voter choices
     function updateVoterChoices(uint8 _firstChoice, uint8 _secondChoice, uint8 _thirdChoice, uint _electionId, address _voter) external {
@@ -216,6 +239,15 @@ contract BallotContract is IBallotContract {
     // Function to get the end time of an election
     function getElectionEndTime(uint _electionId) public view returns (uint) {
         return elections[_electionId].electionEndTime;
+    }
+
+    // Function to get the vote count for a candidate
+    function getCandidateVoteCount(uint _electionId, string memory _candidate) public view returns (uint, uint, uint) {
+        return (
+            candidatesVoteCount[_electionId][_candidate].firstChoiceVotes,
+            candidatesVoteCount[_electionId][_candidate].secondChoiceVotes,
+            candidatesVoteCount[_electionId][_candidate].thirdChoiceVotes
+        );
     }
 
     // Function to get a voter's vote status

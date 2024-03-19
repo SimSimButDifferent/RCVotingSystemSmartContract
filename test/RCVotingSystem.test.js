@@ -24,7 +24,6 @@ describe("VotingContract", function () {
         VotingContract = await ethers.getContractFactory("VotingContract")
         ;[owner, addr1] = await ethers.getSigners()
         votingContract = await VotingContract.deploy(ballotContractAddress)
-
         rankedChoices = [1, 2, 3]
         election1id = 1
         election2id = 2
@@ -246,6 +245,12 @@ describe("BallotContract", function () {
 
         it("Adds electionId to openElections array", async function () {
             expect(await ballotContract.getOpenElections()).to.deep.equal([1])
+        })
+
+        it("Should add candidates to the candidateVoteCount mapping", async function () {
+            expect(
+                await ballotContract.getCandidateVoteCount(1, candidate1),
+            ).to.deep.equal([0, 0, 0])
         })
 
         it("Should emit an ElectionCreated event", async function () {
