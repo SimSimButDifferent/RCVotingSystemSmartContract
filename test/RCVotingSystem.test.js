@@ -7,6 +7,9 @@ describe("VotingContract", function () {
         votingContract,
         owner,
         addr1,
+        addr2,
+        addr3,
+        addr4,
         vote,
         rankedChoices,
         BallotContract,
@@ -22,7 +25,7 @@ describe("VotingContract", function () {
         ballotContract = await BallotContract.deploy()
         ballotContractAddress = ballotContract.target
         VotingContract = await ethers.getContractFactory("VotingContract")
-        ;[owner, addr1] = await ethers.getSigners()
+        ;[owner, addr1, addr2, addr3, addr4] = await ethers.getSigners()
         votingContract = await VotingContract.deploy(ballotContractAddress)
         rankedChoices = [0, 1, 2]
         election1id = 1
@@ -135,6 +138,40 @@ describe("VotingContract", function () {
                     candidate3,
                 ),
             ).to.deep.equal([0, 0, 1])
+        })
+
+        it("should count multiple votes properly", async function () {
+            candidate4 = "candidate 4"
+            await ballotContract.addElection(
+                [candidate1, candidate2, candidate3, candidate4],
+                oneDay,
+            )
+
+            const vote1 = await votingContract
+                .connect(addr1)
+                .addVotes([0, 1, 2, 3], 2)
+            const vote2 = await votingContract
+                .connect(addr3)
+                .addVotes([2, 3, 0, 1], 2)
+            const vote3 = await votingContract
+                .connect(addr4)
+                .addVotes([1, 2, 3, 0], 2)
+            const vote4 = await votingContract
+                .connect(addr2)
+                .addVotes([1, 2, 3, 0], 2)
+
+            expect(
+                await ballotContract.getCandidateVoteCount(2, candidate1),
+            ).to.deep.equal([1, 0, 1])
+            expect(
+                await ballotContract.getCandidateVoteCount(2, candidate2),
+            ).to.deep.equal([2, 1, 0])
+            expect(
+                await ballotContract.getCandidateVoteCount(2, candidate3),
+            ).to.deep.equal([1, 2, 1])
+            expect(
+                await ballotContract.getCandidateVoteCount(2, candidate4),
+            ).to.deep.equal([0, 1, 2])
         })
 
         it("Should emit a VoteCast event", async function () {
