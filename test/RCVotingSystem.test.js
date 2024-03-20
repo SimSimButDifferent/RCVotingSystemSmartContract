@@ -21,11 +21,12 @@ describe("VotingContract", function () {
         oneDay
 
     beforeEach(async function () {
+        ;[owner, addr1, addr2, addr3, addr4] = await ethers.getSigners()
+
         BallotContract = await ethers.getContractFactory("BallotContract")
         ballotContract = await BallotContract.deploy()
         ballotContractAddress = ballotContract.target
         VotingContract = await ethers.getContractFactory("VotingContract")
-        ;[owner, addr1, addr2, addr3, addr4] = await ethers.getSigners()
         votingContract = await VotingContract.deploy(ballotContractAddress)
         rankedChoices = [0, 1, 2]
         election1id = 1
@@ -142,23 +143,16 @@ describe("VotingContract", function () {
 
         it("should count multiple votes properly", async function () {
             candidate4 = "candidate 4"
+
             await ballotContract.addElection(
                 [candidate1, candidate2, candidate3, candidate4],
                 oneDay,
             )
 
-            const vote1 = await votingContract
-                .connect(addr1)
-                .addVotes([0, 1, 2, 3], 2)
-            const vote2 = await votingContract
-                .connect(addr3)
-                .addVotes([2, 3, 0, 1], 2)
-            const vote3 = await votingContract
-                .connect(addr4)
-                .addVotes([1, 2, 3, 0], 2)
-            const vote4 = await votingContract
-                .connect(addr2)
-                .addVotes([1, 2, 3, 0], 2)
+            await votingContract.connect(addr1).addVotes([0, 1, 2, 3], 2)
+            await votingContract.connect(addr3).addVotes([2, 3, 0, 1], 2)
+            await votingContract.connect(addr4).addVotes([1, 2, 3, 0], 2)
+            await votingContract.connect(addr2).addVotes([1, 2, 3, 0], 2)
 
             expect(
                 await ballotContract.getCandidateVoteCount(2, candidate1),
@@ -209,6 +203,10 @@ describe("BallotContract", function () {
         ballotContract,
         owner,
         addr1,
+        addr2,
+        addr3,
+        addr4,
+        addr5,
         candidatesList,
         candidate1,
         candidate2,
@@ -219,7 +217,7 @@ describe("BallotContract", function () {
 
     beforeEach(async function () {
         BallotContract = await ethers.getContractFactory("BallotContract")
-        ;[owner, addr1] = await ethers.getSigners()
+        ;[owner, addr1, addr2, addr3, addr4, addr5] = await ethers.getSigners()
         ballotContract = await BallotContract.deploy()
 
         candidate1 = "Candidate 1"
@@ -366,6 +364,89 @@ describe("BallotContract", function () {
             const closedElection = await ballotContract.closeElection(1)
             await closedElection.wait()
             expect(await ballotContract.getElectionStatus(1)).to.equal(false)
+        })
+
+        it("Should succesfully pick the correct winner and emit event", async function () {
+            const candidate4 = "candidate 4"
+
+            const ballotContractAddress = ballotContract.target
+            VotingContract = await ethers.getContractFactory("VotingContract")
+            votingContract = await VotingContract.deploy(ballotContractAddress)
+
+            await ballotContract.addElection(
+                [candidate1, candidate2, candidate3, candidate4],
+                electionTimeLimit,
+            )
+
+            await votingContract.connect(addr1).addVotes([0, 1, 2, 3], 2)
+            await votingContract.connect(addr3).addVotes([2, 3, 0, 1], 2)
+            await votingContract.connect(addr4).addVotes([1, 2, 3, 0], 2)
+            await votingContract.connect(addr2).addVotes([1, 2, 3, 0], 2)
+
+            await time.increase(electionTimeLimit * 24 * 60 * 60)
+
+            const closedElection = await ballotContract.closeElection(2)
+            await expect(closedElection).to.emit(ballotContract, "TheWinnerIs")
+            await closedElection.wait()
+
+            expect(await ballotContract.getElectionWinner(2)).to.equal(
+                candidate2,
+            )
+        })
+
+        it("Should pick the correct winner if first votes are tied", async function () {
+            const ballotContractAddress = ballotContract.target
+            VotingContract = await ethers.getContractFactory("VotingContract")
+            votingContract = await VotingContract.deploy(ballotContractAddress)
+
+            await ballotContract.addElection(
+                [candidate1, candidate2, candidate3],
+                electionTimeLimit,
+            )
+
+            await votingContract.connect(addr1).addVotes([0, 1, 2], 2)
+            await votingContract.connect(addr2).addVotes([0, 1, 2], 2)
+            await votingContract.connect(addr3).addVotes([1, 0, 2], 2)
+            await votingContract.connect(addr4).addVotes([1, 2, 0], 2)
+
+            await time.increase(electionTimeLimit * 24 * 60 * 60)
+
+            const closedElection = await ballotContract.closeElection(2)
+            await expect(closedElection).to.emit(ballotContract, "TheWinnerIs")
+            await closedElection.wait()
+
+            expect(await ballotContract.getElectionWinner(2)).to.equal(
+                candidate2,
+            )
+        })
+
+        it("Should pick the correct winner if second votes are tied", async function () {
+            const candidate4 = "candidate 4"
+
+            const ballotContractAddress = ballotContract.target
+            VotingContract = await ethers.getContractFactory("VotingContract")
+            votingContract = await VotingContract.deploy(ballotContractAddress)
+
+            await ballotContract.addElection(
+                [candidate1, candidate2, candidate3, candidate4],
+                electionTimeLimit,
+            )
+
+            await votingContract.connect(addr1).addVotes([0, 1, 2, 3], 2)
+            await votingContract.connect(addr2).addVotes([0, 1, 2, 3], 2)
+            await votingContract.connect(addr3).addVotes([1, 0, 2, 3], 2)
+            await votingContract.connect(addr4).addVotes([1, 0, 2, 3], 2)
+            await votingContract.connect(addr5).addVotes([3, 2, 0, 1], 2)
+
+            await time.increase(electionTimeLimit * 24 * 60 * 60)
+
+            const closedElection = await ballotContract.closeElection(2)
+            await expect(closedElection).to.emit(ballotContract, "TheWinnerIs")
+            await closedElection.wait()
+
+            expect(await ballotContract.getElectionWinner(2)).to.equal(
+                candidate1,
+            )
         })
 
         it("Should emit an ElectionClosed event", async function () {

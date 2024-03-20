@@ -18,6 +18,10 @@ event ElectionClosed(
     uint indexed electionId
 );
 
+event TheWinnerIs(
+    string winner
+);
+
 /**
  * @title BallotContract
  * @dev Oversees the entire voting process, interacts with VotingContract to store votes.
@@ -79,6 +83,9 @@ contract BallotContract is IBallotContract {
 
     // Mapping candidates to their vote count
     mapping(uint=> mapping(string => CandidatesVoteCount)) public candidatesVoteCount;
+
+    // Mapping of election winner to the election
+    mapping(uint => string) public electionWinner;
 
 
     /* Modifiers */
@@ -150,6 +157,15 @@ contract BallotContract is IBallotContract {
             // If it is, set the election status to closed
             election.electionOpen = false;
 
+            // Pick winner
+            string memory winner = pickWinner(_electionId);
+
+            // Map the winner to the election
+            electionWinner[_electionId] = winner;
+
+            // Emit the winner
+            emit TheWinnerIs(winner);
+
             // Emit an event to record the closing of the election
             emit ElectionClosed(_electionId);
 
@@ -203,6 +219,50 @@ contract BallotContract is IBallotContract {
         // Add the votes to the candidates' vote count
         candidateVoteCount.thirdChoiceVotes += 1;
     }
+
+    function pickWinner(uint _electionId) internal view returns (string memory) {
+        // Get the candidates for the election
+        string[] memory candidates = elections[_electionId].candidates;
+
+        // Get the candidates' vote count
+        CandidatesVoteCount memory candidateVoteCount = candidatesVoteCount[_electionId][candidates[0]];
+
+        // Set the winner to the first candidate
+        string memory winner = candidates[0];
+
+        // Set the winner's vote count
+        uint winnerVoteCount = candidateVoteCount.firstChoiceVotes;
+
+        // Loop through the candidates
+        for (uint i = 1; i < candidates.length; i++) {
+            // Get the candidates' vote count
+            candidateVoteCount = candidatesVoteCount[_electionId][candidates[i]];
+
+            // Check if the candidate has more votes than the current winner
+            if (candidateVoteCount.firstChoiceVotes > winnerVoteCount) {
+                // If they do, set the winner to the candidate
+                winner = candidates[i];
+
+                // Set the winner's vote count
+                winnerVoteCount = candidateVoteCount.firstChoiceVotes;
+
+                // if the first votes are tied the second choice votes decide the winner
+                } else if (candidateVoteCount.firstChoiceVotes == winnerVoteCount && candidateVoteCount.secondChoiceVotes > candidatesVoteCount[_electionId][winner].secondChoiceVotes) {
+                    winner = candidates[i];
+                    winnerVoteCount = candidateVoteCount.secondChoiceVotes;
+
+                    // if the first and second votes are tied the third choice votes decide the winner
+                } else if (candidateVoteCount.firstChoiceVotes == winnerVoteCount && candidateVoteCount.secondChoiceVotes == candidatesVoteCount[_electionId][winner].secondChoiceVotes && candidateVoteCount.thirdChoiceVotes > candidatesVoteCount[_electionId][winner].thirdChoiceVotes) {
+                    winner = candidates[i];
+                    winnerVoteCount = candidateVoteCount.thirdChoiceVotes;
+                }
+
+            }
+            return winner;
+        }
+
+    
+    
 
     /**
      * @dev Function to add votes to the contract
@@ -263,6 +323,11 @@ contract BallotContract is IBallotContract {
     // Function to get the end time of an election
     function getElectionEndTime(uint _electionId) public view returns (uint) {
         return elections[_electionId].electionEndTime;
+    }
+
+    // Function to get election winner
+    function getElectionWinner(uint _electionId) public view returns (string memory) {
+        return electionWinner[_electionId];
     }
 
     // Function to get the vote count for a candidate

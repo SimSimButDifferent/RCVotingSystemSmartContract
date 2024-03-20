@@ -34,13 +34,15 @@ async function main() {
         const BallotContract =
             await hre.ethers.getContractFactory("BallotContract")
 
-        console.log("Deploying VotingContract...")
+        console.log("Deploying BallotContract...")
+
+        const desiredConfirmations = 6
 
         const ballotContract = await BallotContract.deploy()
-        console.log(`BallotContract deployed to: ${ballotContract.target}`)
         const ballotContractAddress = ballotContract.target
+        console.log(`BallotContract deployed to: ${ballotContractAddress}`)
 
-        const ballotReceipt = await votingContract
+        const ballotReceipt = await ballotContract
             .deploymentTransaction()
             .wait(desiredConfirmations)
 
@@ -60,9 +62,10 @@ async function main() {
         const votingContract = await VotingContract.deploy(
             ballotContractAddress,
         )
-        console.log(`VotingContract deployed to: ${votingContract.target}`)
 
-        const desiredConfirmations = 6
+        const votingContractAddress = votingContract.target
+        console.log(`VotingContract deployed to: ${votingContractAddress}`)
+
         const votingReceipt = await votingContract
             .deploymentTransaction()
             .wait(desiredConfirmations)
@@ -70,7 +73,10 @@ async function main() {
         console.log(
             `Transaction confirmed. Block number: ${votingReceipt.blockNumber}`,
         )
-        await hre.run("verify:etherscan", { address: votingContract.target })
+        await hre.run("verify:verify", {
+            address: votingContractAddress,
+            constructorArguments: [ballotContractAddress],
+        })
         console.log("VotingContract verified!")
         console.log("--------------------------------------------------")
     }
