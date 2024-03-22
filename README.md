@@ -10,6 +10,15 @@ This project is to explore smart contract interaction.
 - The time limit for them can be set in days.
 - The will be a maximum number of people / things to vote for.
 
+## Deployments
+**Sepolia testnet**
+
+```bash
+BallotContract deployed to: 0xcD48dB6c5127dBfF4108b314651078328E66A841
+
+VotingContract deployed to: 0xEC61170874dc8dd696d727617d417f69cB39D3f6
+```
+
 ## To run locally
 
 ```bash
