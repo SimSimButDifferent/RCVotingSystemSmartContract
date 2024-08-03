@@ -1,7 +1,16 @@
+![image](https://github.com/user-attachments/assets/6f020121-cc4c-4cbb-bc77-fc06d7e2b0d6)
+
+
 # Ranked Choice Voting System
 This project is to explore smart contract interaction.
 
-### My main aims for my voting system are:
+A voting system that gives the user multiple choices of votes. All votes are recorded on-chain. After the set time limit for that ballot is up, the votes are counted to find a winner. If there is a tie and the second choices are counted and added. If there is still a tie, then the third choises also count.
+
+The main smart contract is the Ballot contract, which controls the creation and logging of ballots, votes and voter information.
+The Voter contract has all functionality neccesary to handle votes and voter information. The information is stored on the ballot contract. It also contains getter functions to provide any neccesary information a voter may want to know.
+The ballot interface, is used for the voter contract to interact with the ballot contract.
+
+### My main aims for my voting system were:
 - To use multiple smart contracts interacting together.
 - Create and properly utilize a smart contract interface.
 - Maybe explore a factory contract.
